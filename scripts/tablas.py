@@ -3,12 +3,10 @@
 @date: 18 mayo 2024
 @email: pedromayorga522@gmail.com 
 """
-import pandas as pd  # Importa la biblioteca pandas para la manipulación de datos
-import numpy as np  # Importa la biblioteca numpy para operaciones numéricas
-import os  # Importa la biblioteca os para interactuar con el sistema operativo
+import pandas as pd  
+import os
 
-def calcular_estadisticas_y_sumar(df):
-    
+def calcular_estadisticas_y_sumar(df,num_sensor): 
     #Calcula las sumas y estadísticas para cada columna del DataFrame.
     #Parameters:
     #df (DataFrame): El DataFrame que contiene los datos originales.
@@ -29,7 +27,7 @@ def calcular_estadisticas_y_sumar(df):
     }
 
     # Iterar sobre cada columna del DataFrame original
-    for columna in df.columns:
+    for columna in df.columns[2:10]:
         datos_columna = df[columna]  # Extraer los datos de la columna actual
         sumas = []  # Lista para almacenar las sumas de bloques de 180 filas
         medias = []  # Lista para almacenar las medias de bloques de 180 filas
@@ -39,9 +37,11 @@ def calcular_estadisticas_y_sumar(df):
         desviaciones_estandar = []  # Lista para almacenar las desviaciones estándar de bloques de 180 filas
         maximos = []  # Lista para almacenar los valores máximos de bloques de 180 filas
         rangos_dinamicos = []  # Lista para almacenar los rangos dinámicos de bloques de 180 filas
-
+        
+        init = 60 #para saltar el primer segundo donde se acomodan la barra
+        
         # Iterar en bloques de 180 filas
-        for i in range(0, len(df), 180):
+        for i in range(init, len(df), 180):
             datos_bloque = datos_columna.iloc[i:i+180]  # Extraer un bloque de 180 filas
             sumas.append(datos_bloque.sum())  # Calcular y almacenar la suma del bloque
             medias.append(datos_bloque.mean())  # Calcular y almacenar la media del bloque
@@ -53,41 +53,44 @@ def calcular_estadisticas_y_sumar(df):
             rangos_dinamicos.append(datos_bloque.max() - datos_bloque.min())  # Calcular y almacenar el rango dinámico del bloque
 
         # Agregar las listas de sumas y estadísticas al DataFrame y diccionario correspondientes
-        sumas_df[f'{columna}_suma'] = sumas  # Renombrar la columna para reflejar que contiene sumas
-        estadisticas_dict['media'][f'{columna}_media'] = medias  # Renombrar la columna para reflejar que contiene medias
-        estadisticas_dict['varianza'][f'{columna}_varianza'] = varianzas  # Renombrar la columna para reflejar que contiene varianzas
-        estadisticas_dict['asimetria'][f'{columna}_asimetria'] = asimetrias  # Renombrar la columna para reflejar que contiene asimetrías
-        estadisticas_dict['curtosis'][f'{columna}_curtosis'] = curtosis  # Renombrar la columna para reflejar que contiene curtosis
-        estadisticas_dict['desviacion_estandar'][f'{columna}_desviacion_estandar'] = desviaciones_estandar  # Renombrar la columna para reflejar que contiene desviaciones estándar
-        estadisticas_dict['maximo'][f'{columna}_maximo'] = maximos  # Renombrar la columna para reflejar que contiene máximos
-        estadisticas_dict['rango_dinamico'][f'{columna}_rango_dinamico'] = rangos_dinamicos  # Renombrar la columna para reflejar que contiene rangos dinámicos
+        sumas_df[f'{num_sensor}_{columna}_suma'] = sumas  # Renombrar la columna para reflejar que contiene sumas
+        estadisticas_dict['media'][f'{num_sensor}_{columna}_media'] = medias  # Renombrar la columna para reflejar que contiene medias
+        estadisticas_dict['varianza'][f'{num_sensor}_{columna}_varianza'] = varianzas  # Renombrar la columna para reflejar que contiene varianzas
+        estadisticas_dict['asimetria'][f'{num_sensor}_{columna}_asimetria'] = asimetrias  # Renombrar la columna para reflejar que contiene asimetrías
+        estadisticas_dict['curtosis'][f'{num_sensor}_{columna}_curtosis'] = curtosis  # Renombrar la columna para reflejar que contiene curtosis
+        estadisticas_dict['desviacion_estandar'][f'{num_sensor}_{columna}_desviacion_estandar'] = desviaciones_estandar  # Renombrar la columna para reflejar que contiene desviaciones estándar
+        estadisticas_dict['maximo'][f'{num_sensor}_{columna}_maximo'] = maximos  # Renombrar la columna para reflejar que contiene máximos
+        estadisticas_dict['rango_dinamico'][f'{num_sensor}_{columna}_rango_dinamico'] = rangos_dinamicos  # Renombrar la columna para reflejar que contiene rangos dinámicos
 
     # Concatenar todas las estadísticas en un solo DataFrame
     resultados_df = sumas_df  # Inicialmente, solo contiene las sumas
-    for estadistica, df_estadistica in estadisticas_dict.items():
+    for _, df_estadistica in estadisticas_dict.items():
         resultados_df = pd.concat([resultados_df, df_estadistica], axis=1)  # Añadir cada DataFrame de estadísticas
 
     return resultados_df
 
-# Ruta del archivo CSV de entrada
-#archivo_csv = 'C:/Users/Pedro/OneDrive/Escritorio/Sentadilla libre/data/avanzados/20240505_113831_cuate_1/Xsens DOT_1_D422CD006775_20240502_122851.csv'
-archivo_csv = 'C:/Users/josei/OneDrive/Documentos/CIIBI proyectos/Analisys Free Squat/database/recordings_processed/avanzados/20240505_123031_ada_1/Xsens DOT_1_D422CD006775_20240505_122953.csv'
-# Cargar el archivo CSV
-df = pd.read_csv(archivo_csv)  # Lee el archivo CSV y lo almacena en un DataFrame
 
-# Asignar nombres a las columnas
-df.columns = ['PacketCounter', 'SampleTimeFine', 'Euler_X', 'Euler_Y', 'Euler_Z', 'Acc_X', 'Acc_Y', 'Acc_Z', 'Gyr_X', 'Gyr_Y', 'Gyr_Z']
+main_folder = "../../database/recordings_processed/"
+type_patient = os.listdir(main_folder)
 
-# Aplicar la función y obtener el DataFrame con las estadísticas y sumas
-resultados_df = calcular_estadisticas_y_sumar(df)  # Calcula las sumas y estadísticas
+save_folder = "../../database/resume_dataset/"
 
-# Ruta para el nuevo archivo CSV
-nuevo_archivo_csv = 'C:/Users/josei/OneDrive/Documentos/CIIBI proyectos/Analisys Free Squat/scripts/Xsens DOT_1_D422CD006775_20240505_122953.csv'
+for type in type_patient:
 
-# Crear el directorio si no existe
-os.makedirs(os.path.dirname(nuevo_archivo_csv), exist_ok=True)  # Crea el directorio si no existe
+    patients = os.listdir(main_folder + type)
+    for patient in patients:
 
-# Guardar el resultado en un nuevo archivo CSV
-resultados_df.to_csv(nuevo_archivo_csv, index=False)  # Guarda el DataFrame resultante en un archivo CSV sin incluir el índice
+        files = os.listdir(main_folder + type + "/" + patient)
+        patient_df = pd.DataFrame()
+        for file in files:
+            archivo_csv = main_folder + type + "/" + patient + "/" + file
+            num_sensor = file[6:11]
 
-print(f'Archivo guardado en: {nuevo_archivo_csv}')  # Imprime la ruta del archivo guardado
+            df = pd.read_csv(archivo_csv)
+            resultados_df = calcular_estadisticas_y_sumar(df,num_sensor)
+            patient_df = pd.concat([patient_df, resultados_df], axis=1)
+        new_file = save_folder + type + "/" + patient + ".csv"
+        os.makedirs(os.path.dirname(new_file), exist_ok=True)
+        patient_df.to_csv(new_file, index=False)
+        print(f'Archivo guardado en: {new_file}')
+

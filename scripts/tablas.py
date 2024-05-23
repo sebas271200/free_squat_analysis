@@ -13,29 +13,31 @@ def calcular_estadisticas_y_sumar(df,num_sensor):
     #Returns:
     #DataFrame: Un DataFrame que contiene las sumas y estadísticas calculadas.
 
-    sumas_df = pd.DataFrame()  # DataFrame vacío para almacenar las sumas de cada columna
+    medias_df = pd.DataFrame()  # DataFrame vacío para almacenar las sumas de cada columna
     
     # Diccionario para almacenar DataFrames de estadísticas
     estadisticas_dict = {
-        'media': pd.DataFrame(),
-        'varianza': pd.DataFrame(),
-        'asimetria': pd.DataFrame(),
-        'curtosis': pd.DataFrame(),
-        'desviacion_estandar': pd.DataFrame(),
-        'maximo': pd.DataFrame(),
-        'rango_dinamico': pd.DataFrame()
+        'mean': pd.DataFrame(),
+        'variance': pd.DataFrame(),
+        'skewness': pd.DataFrame(),
+        'kurtosis': pd.DataFrame(),
+        'standard_deviation': pd.DataFrame(),
+        'max': pd.DataFrame(),
+        'min': pd.DataFrame(),
+        'dinamic_range': pd.DataFrame()
     }
 
     # Iterar sobre cada columna del DataFrame original
     for columna in df.columns[2:10]:
         datos_columna = df[columna]  # Extraer los datos de la columna actual
-        sumas = []  # Lista para almacenar las sumas de bloques de 180 filas
+        #sumas = []  # Lista para almacenar las sumas de bloques de 180 filas
         medias = []  # Lista para almacenar las medias de bloques de 180 filas
         varianzas = []  # Lista para almacenar las varianzas de bloques de 180 filas
         asimetrias = []  # Lista para almacenar las asimetrías de bloques de 180 filas
         curtosis = []  # Lista para almacenar las curtosis de bloques de 180 filas
         desviaciones_estandar = []  # Lista para almacenar las desviaciones estándar de bloques de 180 filas
         maximos = []  # Lista para almacenar los valores máximos de bloques de 180 filas
+        minimos = []
         rangos_dinamicos = []  # Lista para almacenar los rangos dinámicos de bloques de 180 filas
         
         init = 60 #para saltar el primer segundo donde se acomodan la barra
@@ -43,27 +45,28 @@ def calcular_estadisticas_y_sumar(df,num_sensor):
         # Iterar en bloques de 180 filas
         for i in range(init, len(df), 180):
             datos_bloque = datos_columna.iloc[i:i+180]  # Extraer un bloque de 180 filas
-            sumas.append(datos_bloque.sum())  # Calcular y almacenar la suma del bloque
+            #sumas.append(datos_bloque.sum())  # Calcular y almacenar la suma del bloque
             medias.append(datos_bloque.mean())  # Calcular y almacenar la media del bloque
             varianzas.append(datos_bloque.var())  # Calcular y almacenar la varianza del bloque
             asimetrias.append(datos_bloque.skew())  # Calcular y almacenar la asimetría del bloque
             curtosis.append(datos_bloque.kurtosis())  # Calcular y almacenar la curtosis del bloque
             desviaciones_estandar.append(datos_bloque.std())  # Calcular y almacenar la desviación estándar del bloque
             maximos.append(datos_bloque.max())  # Calcular y almacenar el valor máximo del bloque
+            minimos.append(datos_bloque.min())  # Calcular y almacenar el valor mínimo del bloque
             rangos_dinamicos.append(datos_bloque.max() - datos_bloque.min())  # Calcular y almacenar el rango dinámico del bloque
 
         # Agregar las listas de sumas y estadísticas al DataFrame y diccionario correspondientes
-        sumas_df[f'{num_sensor}_{columna}_suma'] = sumas  # Renombrar la columna para reflejar que contiene sumas
-        estadisticas_dict['media'][f'{num_sensor}_{columna}_media'] = medias  # Renombrar la columna para reflejar que contiene medias
-        estadisticas_dict['varianza'][f'{num_sensor}_{columna}_varianza'] = varianzas  # Renombrar la columna para reflejar que contiene varianzas
-        estadisticas_dict['asimetria'][f'{num_sensor}_{columna}_asimetria'] = asimetrias  # Renombrar la columna para reflejar que contiene asimetrías
-        estadisticas_dict['curtosis'][f'{num_sensor}_{columna}_curtosis'] = curtosis  # Renombrar la columna para reflejar que contiene curtosis
-        estadisticas_dict['desviacion_estandar'][f'{num_sensor}_{columna}_desviacion_estandar'] = desviaciones_estandar  # Renombrar la columna para reflejar que contiene desviaciones estándar
-        estadisticas_dict['maximo'][f'{num_sensor}_{columna}_maximo'] = maximos  # Renombrar la columna para reflejar que contiene máximos
-        estadisticas_dict['rango_dinamico'][f'{num_sensor}_{columna}_rango_dinamico'] = rangos_dinamicos  # Renombrar la columna para reflejar que contiene rangos dinámicos
+        medias_df[f'{num_sensor}_{columna}_mean'] = medias  # Renombrar la columna para reflejar que contiene sumas
+        estadisticas_dict['variance'][f'{num_sensor}_{columna}_variance'] = varianzas  # Renombrar la columna para reflejar que contiene varianzas
+        estadisticas_dict['skewness'][f'{num_sensor}_{columna}_skewness'] = asimetrias  # Renombrar la columna para reflejar que contiene asimetrías
+        estadisticas_dict['kurtosis'][f'{num_sensor}_{columna}_kurtosis'] = curtosis  # Renombrar la columna para reflejar que contiene curtosis
+        estadisticas_dict['standard_deviation'][f'{num_sensor}_{columna}_standard_deviation'] = desviaciones_estandar  # Renombrar la columna para reflejar que contiene desviaciones estándar
+        estadisticas_dict['max'][f'{num_sensor}_{columna}_max'] = maximos  # Renombrar la columna para reflejar que contiene máximos
+        estadisticas_dict['min'][f'{num_sensor}_{columna}_min'] = minimos  # Renombrar la columna para reflejar que contiene mínimos
+        estadisticas_dict['dinamic_range'][f'{num_sensor}_{columna}_dinamic_range'] = rangos_dinamicos  # Renombrar la columna para reflejar que contiene rangos dinámicos
 
     # Concatenar todas las estadísticas en un solo DataFrame
-    resultados_df = sumas_df  # Inicialmente, solo contiene las sumas
+    resultados_df = medias_df  # Inicialmente, solo contiene las sumas
     for _, df_estadistica in estadisticas_dict.items():
         resultados_df = pd.concat([resultados_df, df_estadistica], axis=1)  # Añadir cada DataFrame de estadísticas
 

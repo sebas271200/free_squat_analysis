@@ -10,6 +10,7 @@ def calcular_estadisticas_y_sumar(df,num_sensor):
     #Calcula las sumas y estadísticas para cada columna del DataFrame.
     #Parameters:
     #df (DataFrame): El DataFrame que contiene los datos originales.
+    #num_sensor (str): El número de sensor que se está procesando.
     #Returns:
     #DataFrame: Un DataFrame que contiene las sumas y estadísticas calculadas.
 
@@ -30,7 +31,6 @@ def calcular_estadisticas_y_sumar(df,num_sensor):
     # Iterar sobre cada columna del DataFrame original
     for columna in df.columns[2:11]:
         datos_columna = df[columna]  # Extraer los datos de la columna actual
-        #sumas = []  # Lista para almacenar las sumas de bloques de 180 filas
         medias = []  # Lista para almacenar las medias de bloques de 180 filas
         varianzas = []  # Lista para almacenar las varianzas de bloques de 180 filas
         asimetrias = []  # Lista para almacenar las asimetrías de bloques de 180 filas
@@ -45,7 +45,6 @@ def calcular_estadisticas_y_sumar(df,num_sensor):
         # Iterar en bloques de 180 filas
         for i in range(init, len(df), 180):
             datos_bloque = datos_columna.iloc[i:i+180]  # Extraer un bloque de 180 filas
-            #sumas.append(datos_bloque.sum())  # Calcular y almacenar la suma del bloque
             medias.append(datos_bloque.mean())  # Calcular y almacenar la media del bloque
             varianzas.append(datos_bloque.var())  # Calcular y almacenar la varianza del bloque
             asimetrias.append(datos_bloque.skew())  # Calcular y almacenar la asimetría del bloque
@@ -72,26 +71,25 @@ def calcular_estadisticas_y_sumar(df,num_sensor):
 
     return resultados_df
 
+main_folder = "../../database/recordings_processed/" #carpeta donde se encuentran los archivos procesados
+type_patient = os.listdir(main_folder) #lista de los tipos de pacientes
 
-main_folder = "../../database/recordings_processed/"
-type_patient = os.listdir(main_folder)
+save_folder = "../../database/resume_dataset/" #carpeta donde se guardaran los archivos procesados
 
-save_folder = "../../database/resume_dataset/"
+for type in type_patient: #iterar sobre los tipos de pacientes
 
-for type in type_patient:
+    patients = os.listdir(main_folder + type) #lista de los pacientes
+    for patient in patients: #iterar sobre los pacientes
+        files = os.listdir(main_folder + type + "/" + patient) #lista de los archivos de cada paciente
+        patient_df = pd.DataFrame() #DataFrame vacío para almacenar las sumas y estadísticas de cada archivo
+        for file in files: #iterar sobre los archivos de cada paciente
+            archivo_csv = main_folder + type + "/" + patient + "/" + file #ruta del archivo csv
+            num_sensor = file[6:11] #número de sensor
 
-    patients = os.listdir(main_folder + type)
-    for patient in patients:
-        files = os.listdir(main_folder + type + "/" + patient)
-        patient_df = pd.DataFrame()
-        for file in files:
-            archivo_csv = main_folder + type + "/" + patient + "/" + file
-            num_sensor = file[6:11]
-
-            df = pd.read_csv(archivo_csv)
-            resultados_df = calcular_estadisticas_y_sumar(df,num_sensor)
-            patient_df = pd.concat([patient_df, resultados_df], axis=1)
-        new_file = save_folder + type + "/" + patient + ".csv"
-        os.makedirs(os.path.dirname(new_file), exist_ok=True)
-        patient_df.to_csv(new_file, index=False)
-        print(f'Archivo guardado en: {new_file}')
+            df = pd.read_csv(archivo_csv) #leer el archivo csv
+            resultados_df = calcular_estadisticas_y_sumar(df,num_sensor) #calcular las sumas y estadísticas
+            patient_df = pd.concat([patient_df, resultados_df], axis=1) #concatenar los resultados al DataFrame del paciente
+        new_file = save_folder + type + "/" + patient + ".csv" #ruta donde se guardará el archivo
+        os.makedirs(os.path.dirname(new_file), exist_ok=True) #crear la carpeta si no existe
+        patient_df.to_csv(new_file, index=False) #guardar el archivo
+        print(f'Archivo guardado en: {new_file}') #imprimir la ruta del archivo guardado
